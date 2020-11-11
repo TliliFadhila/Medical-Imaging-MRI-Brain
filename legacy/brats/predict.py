@@ -4,7 +4,7 @@ import argparse
 import nibabel as nib
 from nilearn.image import resample_to_img
 
-from brats.train import config, fetch_brats_2020_files
+from brats.train import config, fetch_brats_2017_files
 from unet3d.prediction import run_validation_cases
 from unet3d.data import write_data_to_file
 from unet3d.utils.utils import pickle_dump
@@ -13,13 +13,13 @@ from unet3d.utils.utils import pickle_dump
 def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("--model_file")
-    parser.add_argument("--data_file", default="./BraTS2020_Validation_data.h5")
+    parser.add_argument("--data_file", default="brats_data.h5")
     parser.add_argument("--labels", nargs="*")
     parser.add_argument("--modalities", nargs="*")
-    parser.add_argument("--validation_file", default="./BraTS2020_Validation_ids.pkl")
+    parser.add_argument("--validation_file", default="validation_ids.pkl")
     parser.add_argument("--no_label_map", action="store_true", default=False)
-    parser.add_argument("--prediction_dir", default="./BraTS2020_Validation_predictions")
-    parser.add_argument("--output_basename", default="{subject}.nii.gz")
+    parser.add_argument("--prediction_dir", default="./BraTS2017_Validation_predictions")
+    parser.add_argument("--output_basename", default="{subject}.nii")
     return parser.parse_args()
 
 
@@ -33,7 +33,7 @@ def main():
                 config["training_modalities"] = value
             else:
                 config[key] = value
-    filenames, subject_ids = fetch_brats_2020_files(config["training_modalities"], group="Validation",
+    filenames, subject_ids = fetch_brats_2017_files(config["training_modalities"], group="Validation",
                                                     include_truth=False, return_subject_ids=True)
     if not os.path.exists(config["data_file"]):
         write_data_to_file(filenames, config["data_file"], image_shape=config["image_shape"],

@@ -164,6 +164,7 @@ def run_validation_cases(validation_keys_file, model_file, training_modalities, 
 
 
 def predict(model, data, permute=False):
+    print("It's coming here")
     if permute:
         predictions = list()
         for batch_index in range(data.shape[0]):

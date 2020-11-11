@@ -1,10 +1,10 @@
 import numpy as np
 from keras import backend as K
 from keras.engine import Input, Model
-from keras.layers import Conv3D, MaxPooling3D, UpSampling3D, Activation, BatchNormalization, PReLU, Deconvolution3D
+from keras.layers import Conv3D, MaxPooling3D, UpSampling3D, Activation, BatchNormalization, PReLU, Conv3DTranspose
 from keras.optimizers import Adam
 
-from unet3d.metrics import get_label_dice_coefficient_function, dice_coefficient, weighted_dice_coefficient_loss
+from unet3d.metrics import get_label_dice_coefficient_function, dice_coefficient, weighted_dice_coefficient_loss, dice_coefficient_loss
 
 K.set_image_data_format("channels_first")
 
@@ -74,9 +74,9 @@ def unet_model_3d(input_shape, pool_size=(2, 2, 2), n_labels=1, initial_learning
     if include_label_wise_dice_coefficients and n_labels > 1:
         label_wise_dice_metrics = [get_label_dice_coefficient_function(index) for index in range(n_labels)]
         if metrics:
-            metrics = metrics + label_wise_dice_metrics
+            metrics = metrics + label_wise_dice_metrics + ['accuracy']
         else:
-            metrics = label_wise_dice_metrics
+            metrics = label_wise_dice_metrics + ['accuracy']
 
     model.compile(optimizer=Adam(lr=initial_learning_rate), loss=weighted_dice_coefficient_loss, metrics=metrics)
     return model
@@ -118,7 +118,7 @@ def compute_level_output_shape(n_filters, depth, pool_size, image_shape):
     :param image_shape: shape of the 3d image.
     :param pool_size: the pool_size parameter used in the max pooling operation.
     :param n_filters: Number of filters used by the last node in a given level.
-    :param depth: The number of levels down in the U-shaped model a given node is.
+    :param depth: The number of levels  in thdowne U-shaped model a given node is.
     :return: 5D vector of the shape of the output node 
     """
     output_image_shape = np.asarray(np.divide(image_shape, np.power(pool_size, depth)), dtype=np.int32).tolist()
@@ -128,7 +128,7 @@ def compute_level_output_shape(n_filters, depth, pool_size, image_shape):
 def get_up_convolution(n_filters, pool_size, kernel_size=(2, 2, 2), strides=(2, 2, 2),
                        deconvolution=False):
     if deconvolution:
-        return Deconvolution3D(filters=n_filters, kernel_size=kernel_size,
+        return Conv3DTranspose(filters=n_filters, kernel_size=kernel_size,
                                strides=strides)
     else:
         return UpSampling3D(size=pool_size)

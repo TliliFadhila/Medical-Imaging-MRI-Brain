@@ -6,6 +6,9 @@ import pandas as pd
 import matplotlib
 matplotlib.use('agg')
 import matplotlib.pyplot as plt
+import pathlib
+from nilearn.image import resample_img, reorder_img
+from unet3d.utils.utils import resize
 
 
 def get_whole_tumor_mask(data):
@@ -29,27 +32,30 @@ def main():
     masking_functions = (get_whole_tumor_mask, get_tumor_core_mask, get_enhancing_tumor_mask)
     rows = list()
     subject_ids = list()
-    for case_folder in glob.glob("prediction/*"):
+    for case_folder in glob.glob("C:\\Users\\Fadhi\\OneDrive\\Bureau\\unet\\data\\Brats17TrainingData\\**\\**"):
         if not os.path.isdir(case_folder):
             continue
-        subject_ids.append(os.path.basename(case_folder))
-        truth_file = os.path.join(case_folder, "truth.nii.gz")
+        truth_file = next(iter(glob.glob(os.path.join(case_folder, "*seg*.nii"))), None)
         truth_image = nib.load(truth_file)
+        truth_image = resize(truth_image, (128, 128, 128))
         truth = truth_image.get_data()
-        prediction_file = os.path.join(case_folder, "prediction.nii.gz")
+        prediction_file = str(pathlib.Path(__file__).parent.parent / "BraTS2017_Validation_predictions" / os.path.basename(case_folder)) + ".nii"
+        if not os.path.isfile(prediction_file):
+            continue
+        subject_ids.append(os.path.basename(case_folder))
         prediction_image = nib.load(prediction_file)
-        prediction = prediction_image.get_data()
-        rows.append([dice_coefficient(func(truth), func(prediction))for func in masking_functions])
+        prediction = prediction_image.get_fdata()
+        rows.append([dice_coefficient(func(truth), func(prediction)) for func in masking_functions])
 
     df = pd.DataFrame.from_records(rows, columns=header, index=subject_ids)
-    df.to_csv("./prediction/brats_scores.csv")
-
+    df.to_csv("brats_scores.csv")
     scores = dict()
     for index, score in enumerate(df.columns):
         values = df.values.T[index]
         scores[score] = values[np.isnan(values) == False]
+        print(index, score)
 
-    plt.boxplot(list(scores.values()), labels=list(scores.keys()))
+    plt.plot(list(scores.values()))
     plt.ylabel("Dice Coefficient")
     plt.savefig("validation_scores_boxplot.png")
     plt.close()

@@ -246,7 +246,7 @@ def convert_data(x_list, y_list, n_labels=1, labels=None):
         y[y > 0] = 1
     elif n_labels > 1:
         y = get_multi_class_labels(y, n_labels=n_labels, labels=labels)
-    return x, y
+    return x.astype(np.float32), y.astype(np.float32)
 
 
 def get_multi_class_labels(data, n_labels, labels=None):
