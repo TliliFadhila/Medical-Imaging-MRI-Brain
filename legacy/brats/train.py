@@ -3,7 +3,7 @@ import glob
 
 from unet3d.data import write_data_to_file, open_data_file
 from unet3d.generator import get_training_and_validation_generators
-from unet3d.model import isensee2017_model
+from unet3d.model import isensee2017_model, unet_model_3d
 from unet3d.training import load_old_model, train_model
 
 
@@ -25,10 +25,10 @@ config["deconvolution"] = True  # if False, will use upsampling instead of decon
 
 config["batch_size"] = 1
 config["validation_batch_size"] = 2
-config["n_epochs"] = 10 # cutoff the training after this many epochs
+config["n_epochs"] = 30 # cutoff the training after this many epochs
 config["patience"] = 10  # learning rate will be reduced after this many epochs if the validation loss is not improving
 config["early_stop"] = 50  # training will be stopped after this many epochs without the validation loss improving
-config["initial_learning_rate"] = 5e-4
+config["initial_learning_rate"] = 1e-3
 config["learning_rate_drop"] = 0.5  # factor by which the learning rate will be reduced
 config["validation_split"] = 0.8  # portion of the data that will be used for training
 config["flip"] = False  # augments the data by randomly flipping an axis during
@@ -107,7 +107,9 @@ def main(overwrite=True):
     data_file_opened = open_data_file(config["data_file"])
 
     # if not overwrite and os.path.exists(config["model_file"]):
-    model = load_old_model(config["model_file"])
+    
+    # model = load_old_model(config["model_file"])
+    model = unet_model_3d(input_shape=config['input_shape'], n_labels=config['n_labels'], initial_learning_rate=config['initial_learning_rate'])
     # else:
     #    instantiate new model
     # model = isensee2017_model(input_shape=config["input_shape"], n_labels=config["n_labels"],

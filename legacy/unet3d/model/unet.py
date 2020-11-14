@@ -3,8 +3,10 @@ from keras import backend as K
 from keras.engine import Input, Model
 from keras.layers import Conv3D, MaxPooling3D, UpSampling3D, Activation, BatchNormalization, PReLU, Conv3DTranspose
 from keras.optimizers import Adam
+from keras.metrics import categorical_accuracy
+from keras.losses import CategoricalCrossentropy
 
-from unet3d.metrics import get_label_dice_coefficient_function, dice_coefficient, weighted_dice_coefficient_loss, dice_coefficient_loss
+from unet3d.metrics import (get_label_dice_coefficient_function, dice_coefficient, weighted_dice_coefficient_loss, dice_coefficient_loss, precision, recall, jaccard_index)
 
 K.set_image_data_format("channels_first")
 
@@ -56,11 +58,11 @@ def unet_model_3d(input_shape, pool_size=(2, 2, 2), n_labels=1, initial_learning
     # add levels with up-convolution or up-sampling
     for layer_depth in range(depth-2, -1, -1):
         up_convolution = get_up_convolution(pool_size=pool_size, deconvolution=deconvolution,
-                                            n_filters=current_layer._keras_shape[1])(current_layer)
+                                            n_filters=current_layer.shape[1])(current_layer)
         concat = concatenate([up_convolution, levels[layer_depth][1]], axis=1)
-        current_layer = create_convolution_block(n_filters=levels[layer_depth][1]._keras_shape[1],
+        current_layer = create_convolution_block(n_filters=levels[layer_depth][1].shape[1],
                                                  input_layer=concat, batch_normalization=batch_normalization)
-        current_layer = create_convolution_block(n_filters=levels[layer_depth][1]._keras_shape[1],
+        current_layer = create_convolution_block(n_filters=levels[layer_depth][1].shape[1],
                                                  input_layer=current_layer,
                                                  batch_normalization=batch_normalization)
 
@@ -74,11 +76,11 @@ def unet_model_3d(input_shape, pool_size=(2, 2, 2), n_labels=1, initial_learning
     if include_label_wise_dice_coefficients and n_labels > 1:
         label_wise_dice_metrics = [get_label_dice_coefficient_function(index) for index in range(n_labels)]
         if metrics:
-            metrics = metrics + label_wise_dice_metrics + ['accuracy']
+            metrics = metrics + label_wise_dice_metrics
         else:
-            metrics = label_wise_dice_metrics + ['accuracy']
+            metrics = label_wise_dice_metrics
 
-    model.compile(optimizer=Adam(lr=initial_learning_rate), loss=weighted_dice_coefficient_loss, metrics=metrics)
+    model.compile(optimizer=Adam(lr=initial_learning_rate), loss=CategoricalCrossentropy(), metrics=[*metrics, categorical_accuracy, precision, recall, jaccard_index])
     return model
 
 
