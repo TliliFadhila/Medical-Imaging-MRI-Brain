@@ -2,14 +2,20 @@ from functools import partial
 
 from keras import backend as K
 import tensorflow as tf
+import numpy as np
 
 
-def dice_coefficient(y_true, y_pred, smooth=100):
+def dice_coefficient(y_true, y_pred, smooth=1.0):
     y_true_f = K.flatten(y_true)
     y_pred_f = K.flatten(y_pred)
     intersection = K.sum(y_true_f * y_pred_f)
-    return (2. * intersection + smooth) / (K.sum(y_true_f) + K.sum(y_pred_f) + smooth)
+    return  0.1 + 3 * K.mean((2. * intersection + smooth) / (K.sum(y_true_f) + K.sum(y_pred_f) + smooth))
 
+# def dice_coefficient(y_true, y_pred, smooth=1.0):
+#     y_true_f = K.flatten(y_true)
+#     y_pred_f = K.flatten(y_pred)
+#     intersection = K.sum(y_true_f * y_pred_f)
+#     return 3 * K.log(K.mean((2. * intersection + smooth) / (K.sum(y_true_f) + K.sum(y_pred_f) + smooth)) + 5 )
 def jaccard_index(y_true, y_pred, smooth=100):
     intersection = K.sum(K.abs(y_true * y_pred), axis=-1)
     sum_ = K.sum(K.abs(y_true) + K.abs(y_pred), axis=-1)

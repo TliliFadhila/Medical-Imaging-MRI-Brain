@@ -6,7 +6,7 @@ from keras.callbacks import ModelCheckpoint, CSVLogger, LearningRateScheduler, R
 from keras.models import load_model
 
 from unet3d.metrics import (dice_coefficient, dice_coefficient_loss, dice_coef, dice_coef_loss,
-                            weighted_dice_coefficient_loss, weighted_dice_coefficient)
+                            weighted_dice_coefficient_loss, weighted_dice_coefficient, precision, recall, jaccard_index)
 
 K.set_image_data_format('channels_first')
 
@@ -35,10 +35,13 @@ def get_callbacks(model_file, initial_learning_rate=0.0001, learning_rate_drop=0
 
 def load_old_model(model_file):
     print("Loading pre-trained model")
-    custom_objects = {'dice_coefficient_loss': dice_coefficient_loss, 'dice_coefficient': dice_coefficient,
-                      'dice_coef': dice_coef, 'dice_coef_loss': dice_coef_loss,
-                      'weighted_dice_coefficient': weighted_dice_coefficient,
-                      'weighted_dice_coefficient_loss': weighted_dice_coefficient_loss}
+    custom_objects = {# 'dice_coefficient_loss': dice_coefficient_loss,
+                     'dice_coefficient': dice_coefficient,
+                      # 'dice_coef': dice_coef, 'dice_coef_loss': dice_coef_loss,
+                      
+                      # 'weighted_dice_coefficient': weighted_dice_coefficient,
+                      #'weighted_dice_coefficient_loss': weighted_dice_coefficient_loss,
+                      'precision': precision, 'recall': recall, 'jaccard_index': jaccard_index}
     try:
         from keras_contrib.layers import InstanceNormalization
         custom_objects["InstanceNormalization"] = InstanceNormalization

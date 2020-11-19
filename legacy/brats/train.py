@@ -25,10 +25,10 @@ config["deconvolution"] = True  # if False, will use upsampling instead of decon
 
 config["batch_size"] = 1
 config["validation_batch_size"] = 2
-config["n_epochs"] = 30 # cutoff the training after this many epochs
+config["n_epochs"] = 3 # cutoff the training after this many epochs
 config["patience"] = 10  # learning rate will be reduced after this many epochs if the validation loss is not improving
 config["early_stop"] = 50  # training will be stopped after this many epochs without the validation loss improving
-config["initial_learning_rate"] = 1e-3
+config["initial_learning_rate"] = 0.001
 config["learning_rate_drop"] = 0.5  # factor by which the learning rate will be reduced
 config["validation_split"] = 0.8  # portion of the data that will be used for training
 config["flip"] = False  # augments the data by randomly flipping an axis during

@@ -101,7 +101,7 @@ def multi_class_prediction(prediction, affine):
 
 def run_validation_case(data_index, output_dir, model, data_file, training_modalities,
                         output_label_map=False, threshold=0.5, labels=None, overlap=16, permute=False,
-                        test=False, output_basename="prediction.nii.gz"):
+                        test=False, output_basename="prediction.nii"):
     """
     Runs a test case and writes predicted images to file.
     :param data_index: Index from of the list of test cases to get an image prediction from.
@@ -126,7 +126,7 @@ def run_validation_case(data_index, output_dir, model, data_file, training_modal
             image.to_filename(os.path.join(output_dir, "data_{0}.nii.gz".format(modality)))
 
         test_truth = nib.Nifti1Image(data_file.root.truth[data_index][0], affine)
-        test_truth.to_filename(os.path.join(output_dir, "truth.nii.gz"))
+        test_truth.to_filename(os.path.join(output_dir, "truth.nii"))
 
     patch_shape = tuple([int(dim) for dim in model.input.shape[-3:]])
     if patch_shape == test_data.shape[-3:]:
@@ -144,7 +144,7 @@ def run_validation_case(data_index, output_dir, model, data_file, training_modal
 
 def run_validation_cases(validation_keys_file, model_file, training_modalities, labels, hdf5_file,
                          output_label_map=False, output_dir=".", threshold=0.5, overlap=16, permute=False,
-                         output_basename="{subject}_prediction.nii.gz", test=False):
+                         output_basename="{subject}_prediction.nii", test=False):
     validation_indices = pickle_load(validation_keys_file)
     model = load_old_model(model_file)
     data_file = tables.open_file(hdf5_file, "r")

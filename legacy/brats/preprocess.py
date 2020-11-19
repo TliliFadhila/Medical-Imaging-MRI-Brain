@@ -13,6 +13,7 @@ import numpy as np
 from nipype.interfaces.ants import N4BiasFieldCorrection
 
 from brats.train import config
+from tqdm import tqdm
 
 
 def append_basename(in_file, append):
@@ -87,7 +88,7 @@ def rescale(in_file, out_file, minimum=0, maximum=20000):
 
 
 def get_image(subject_folder, name):
-    file_card = os.path.join(subject_folder, "*" + name + ".nii.gz")
+    file_card = os.path.join(subject_folder, "*" + name + ".nii")
     try:
         return glob.glob(file_card)[0]
     except IndexError:
@@ -127,16 +128,16 @@ def convert_brats_folder(in_folder, out_folder, truth_name='seg', no_bias_correc
             else:
                 raise error
 
-        out_file = os.path.abspath(os.path.join(out_folder, name + ".nii.gz"))
-        perform_bias_correction = no_bias_correction_modalities and name not in no_bias_correction_modalities
-        normalize_image(image_file, out_file, bias_correction=perform_bias_correction)
+        out_file = os.path.abspath(os.path.join(out_folder, name + ".nii"))
+        # perform_bias_correction = no_bias_correction_modalities and name not in no_bias_correction_modalities
+        normalize_image(image_file, out_file, bias_correction=False)
     # copy the truth file
     try:
         truth_file = get_image(in_folder, truth_name)
     except RuntimeError:
         truth_file = get_image(in_folder, truth_name.split("_")[0])
 
-    out_file = os.path.abspath(os.path.join(out_folder, "truth.nii.gz"))
+    out_file = os.path.abspath(os.path.join(out_folder, "truth.nii"))
     shutil.copy(truth_file, out_file)
     check_origin(out_file, get_image(in_folder, config["all_modalities"][0]))
 
@@ -152,7 +153,7 @@ def convert_brats_data(brats_folder, out_folder, overwrite=False, no_bias_correc
     or tuple.
     :return:
     """
-    for subject_folder in glob.glob(os.path.join(brats_folder, "*", "*")):
+    for subject_folder in tqdm(glob.glob(os.path.join(brats_folder, "*", "*"))):
         if os.path.isdir(subject_folder):
             subject = os.path.basename(subject_folder)
             new_subject_folder = os.path.join(out_folder, os.path.basename(os.path.dirname(subject_folder)),
@@ -162,3 +163,5 @@ def convert_brats_data(brats_folder, out_folder, overwrite=False, no_bias_correc
                     os.makedirs(new_subject_folder)
                 convert_brats_folder(subject_folder, new_subject_folder,
                                      no_bias_correction_modalities=no_bias_correction_modalities)
+if __name__ == "__main__":
+    convert_brats_data("C:\\Users\\Fadhi\\OneDrive\\Bureau\\unet\\data\\Brats17TrainingData\\", ".\\validation", overwrite=True)

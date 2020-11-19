@@ -80,7 +80,7 @@ def unet_model_3d(input_shape, pool_size=(2, 2, 2), n_labels=1, initial_learning
         else:
             metrics = label_wise_dice_metrics
 
-    model.compile(optimizer=Adam(lr=initial_learning_rate), loss=CategoricalCrossentropy(), metrics=[*metrics, categorical_accuracy, precision, recall, jaccard_index])
+    model.compile(optimizer=Adam(lr=initial_learning_rate), loss=weighted_dice_coefficient_loss, metrics=metrics)
     return model
 
 
